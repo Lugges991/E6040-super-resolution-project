@@ -17,10 +17,11 @@ import torchvision.utils as vutils
 from ecbm6040.dataloader.CustomDatasetFromCSV import CustomDatasetFromCSV
 from ecbm6040.patching.patchloader import patching
 
+
 def training_pre(model, dataloaders, dataset_sizes,
                  criterion, device, ngpu,
-                 max_step=500000, lr=1e-4, 
-                 patch_size=2, cube_size=64, 
+                 max_step=500000, lr=1e-4,
+                 patch_size=2, cube_size=64,
                  usage=1.0, pretrained=' '):
     """
     This function is the pretraining of Generator: Multi-level Densely Connected Super-Resolution Network (mDCSRN). 
@@ -40,13 +41,14 @@ def training_pre(model, dataloaders, dataset_sizes,
     """
     since = time.time()
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    print ("Generator pre-training...")
+    print("Generator pre-training...")
     if pretrained != ' ':
         model.load_state_dict(torch.load(pretrained))
         # if transfer from a single gpu case, set multi-gpu here again.
         if (device.type == 'cuda') and (ngpu > 1):
             model = nn.DataParallel(model, list(range(ngpu)))
-        step = int(re.sub("\D", "", pretrained))  #start from the pretrained model's step
+        # start from the pretrained model's step
+        step = int(re.sub("\D", "", pretrained))
     else:
         step = 0
     while(step < max_step):
@@ -60,62 +62,71 @@ def training_pre(model, dataloaders, dataset_sizes,
             else:
                 model.eval()   # Set model to training mode
             batch_loss = 0.0
-            
+
             for lr_data, hr_data in dataloaders[phase]:
-                patch_loader=patching(lr_data, hr_data, 
-                                      patch_size = patch_size, 
-                                      cube_size = cube_size, 
-                                      usage=usage, is_training=True)
+                # this gives the lr and hr patches already
+
+                # patch_loader=patching(lr_data, hr_data,
+                #                       patch_size = patch_size,
+                #                       cube_size = cube_size,
+                #                       usage=usage, is_training=True)
+
                 patch_count = 0
                 patch_loss = 0.0
-                for lr_patches, hr_patches in patch_loader:
-                    lr_patches=lr_patches.cuda(device)
-                    hr_patches=hr_patches.cuda(device)
-                    # zero the parameter gradients
-                    optimizer.zero_grad()
-                    
-                    # forward
-                    # track history if only in train
-                    with torch.set_grad_enabled(phase == 'train'):
-                        sr_patches = model(lr_patches)
-                        loss = criterion(sr_patches, hr_patches)
-                        # backward + optimize only if in training phase
-                        if phase == 'train':
-                            loss.backward()
-                            optimizer.step()
-                            step += 1          # we count step here
-                            #This print out is only for early inspection
+
+                lr_patches = lr_data.cuda(device)
+                hr_patches = hr_data.cuda(device)
+                # zero the parameter gradients
+                optimizer.zero_grad()
+
+                # forward
+                # track history if only in train
+                with torch.set_grad_enabled(phase == 'train'):
+                    sr_patches = model(lr_patches)
+                    loss = criterion(sr_patches, hr_patches)
+                    # backward + optimize only if in training phase
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
+                        step += 1          # we count step here
+                        # This print out is only for early inspection
 #                             if (step % 500) == 0:
 #                                 print('Step: {}, loss= {:.4f}'.format(step, loss.item()))
-                            if (step % int(max_step // 10)) ==0:
-                                # save intermediate models
-                                torch.save(model,'models/pretrained_G_step{}'.format(step))
-                                # save example lr, sr images
-                                f=open('example_images/example_lr_step{}.txt'.format(step),'wb')
-                                pickle.dump(lr_patches.data.cpu().numpy() ,f)
-                                f.close()
-                                f=open('example_images/example_sr_step{}.txt'.format(step),'wb')
-                                pickle.dump(sr_patches.data.cpu().numpy() ,f)
-                                f.close()
-                                f=open('example_images/example_hr_step{}.txt'.format(step),'wb')
-                                pickle.dump(hr_patches.data.cpu().numpy() ,f)
-                                f.close()
-                            if (step == max_step):
-                                print('Complete {} steps'.format(step))
-                                # save model for single GPU and multi GPU
-                                if ngpu > 1:
-                                    torch.save(model.module.state_dict(),'models/pretrained_G_step{}'.format(step))
-                                else:
-                                    torch.save(model.state_dict(),'models/pretrained_G_step{}'.format(step))
-                                return model
-                    # statistics
-                    patch_count += lr_patches.size(0)
-                    patch_loss += loss.item() * lr_patches.size(0)
-                batch_loss += patch_loss / patch_count    
+                        if (step % int(max_step // 10)) == 0:
+                            # save intermediate models
+                            torch.save(
+                                model, 'models/pretrained_G_step{}'.format(step))
+                            # save example lr, sr images
+                            f = open(
+                                'example_images/example_lr_step{}.txt'.format(step), 'wb')
+                            pickle.dump(lr_patches.data.cpu().numpy(), f)
+                            f.close()
+                            f = open(
+                                'example_images/example_sr_step{}.txt'.format(step), 'wb')
+                            pickle.dump(sr_patches.data.cpu().numpy(), f)
+                            f.close()
+                            f = open(
+                                'example_images/example_hr_step{}.txt'.format(step), 'wb')
+                            pickle.dump(hr_patches.data.cpu().numpy(), f)
+                            f.close()
+                        if (step == max_step):
+                            print('Complete {} steps'.format(step))
+                            # save model for single GPU and multi GPU
+                            if ngpu > 1:
+                                torch.save(model.module.state_dict(
+                                ), 'models/pretrained_G_step{}'.format(step))
+                            else:
+                                torch.save(
+                                    model.state_dict(), 'models/pretrained_G_step{}'.format(step))
+                            return model
+                # statistics
+                patch_count += lr_patches.size(0)
+                patch_loss += loss.item() * lr_patches.size(0)
+                batch_loss += patch_loss / patch_count
             epoch_loss = batch_loss / dataset_sizes[phase]
             print('Step: {}, {} Loss: {:.4f}'.format(step, phase, epoch_loss))
-    
+
         time_elapsed = time.time() - since
         print('Now the training uses {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
+            time_elapsed // 60, time_elapsed % 60))
         print()
