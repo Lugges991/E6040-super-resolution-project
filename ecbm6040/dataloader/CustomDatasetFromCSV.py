@@ -71,8 +71,8 @@ class QiDataset(Dataset):
         return image_torch
 
     def __getitem__(self, idx):
-        hr = nib.load(self.hr_files[idx])
-        lr = nib.load(self.lr_files[idx])
+        hr = nib.load(str(self.hr_files[idx]))
+        lr = nib.load(str(self.lr_files[idx]))
 
         sample_lr = self.transform(np.array(lr.dataobj))
         sample_hr = self.transform(np.array(hr.dataobj))
