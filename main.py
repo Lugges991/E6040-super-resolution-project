@@ -43,10 +43,6 @@ print("Random Seed: ", manualSeed)
 random.seed(manualSeed)
 torch.manual_seed(manualSeed)
 
-# Set pathes
-vm_PATH = "./mnt/superresolution/HCP_1200/"
-id_csv = './csv/id_hcp.csv'
-
 # Number of workers for dataloader
 workers = 1
 
@@ -100,11 +96,11 @@ random_seed = 999
 # dataset = CustomDatasetFromCSV(id_csv, vm_PATH)
 # dataset_size = len(dataset)
 
-train_hr_path = "/ptmp/wangqi/transfer_folder/LS200X_Norm/all_subj_train_crops"
-train_lr_path = "/ptmp/wangqi/transfer_folder/LS200X_Norm/LR/crops"
+train_hr_path = "/ptmp/lumah/data/HR/all_subj_train_crops"
+train_lr_path = "/ptmp/lumah/data/LR/crops"
 
-eval_hr_path = "/ptmp/wangqi/transfer_folder/LS200X_Norm/val_crops/crops"
-eval_lr_path = "/ptmp/wangqi/transfer_folder/LS200X_Norm/LR/crops"
+eval_hr_path = "/ptmp/lumah/data/HR/val"
+eval_lr_path = "/ptmp/lumah/data/LR/val"
 
 train_dataset = QiDataset(train_hr_path, train_lr_path)
 eval_dataset = QiDataset(eval_hr_path, eval_lr_path)
