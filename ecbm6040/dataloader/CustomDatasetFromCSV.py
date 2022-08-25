@@ -76,7 +76,7 @@ class QiDataset(Dataset):
 
         sample_lr = self.transform(np.array(lr.dataobj))
         sample_hr = self.transform(np.array(hr.dataobj))
-        return (sample_lr, sample_hr)
+        return (sample_lr[None, :], sample_hr[None, :])
 
     def __len__(self):
         return len(self.hr_files)
