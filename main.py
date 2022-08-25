@@ -200,13 +200,13 @@ D_criterion = nn.BCELoss()
 model = training_pre(netG, dataloaders,
                      dataset_sizes, supervised_criterion,
                      device, ngpu, max_step=num_steps_pre,
-                     lr=lr_pre, patch_size=patch_size, pretrained='models/pretrained_G_step225000')
+                     lr=lr_pre, patch_size=patch_size)
 
 
 wgan_gp = WGAN_GP(netG, netD, supervised_criterion,
                   D_criterion, device, ngpu, lr=lr)
 model_G, model_D = wgan_gp.training(dataloaders, max_step=num_steps, first_steps=first_steps,
-                                    patch_size=patch_size, pretrainedG='models/WGAN_G_step370000', pretrainedD='models/WGAN_D_step370000')
+                                    patch_size=patch_size)
 
 
 # f = open('loss_history/train_loss_history.txt', 'rb')
