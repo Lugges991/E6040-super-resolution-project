@@ -16,6 +16,7 @@ from torchvision import datasets, models, transforms
 import torchvision.utils as vutils
 from ecbm6040.dataloader.CustomDatasetFromCSV import CustomDatasetFromCSV
 from ecbm6040.patching.patchloader import patching
+import wandb
 
 
 def training_pre(model, dataloaders, dataset_sizes,
@@ -39,6 +40,7 @@ def training_pre(model, dataloaders, dataset_sizes,
         usage (float) - the percentage of usage of one cluster of patches. For example: usage= 0.5 means to randomly pick 50% patches from a cluster of 200 patches. This is only used in training period. By default, the value is 1.0.
         pretrained (string) - the root of the saved pretrained model. 
     """
+    wandb.init(project="super-res")
     since = time.time()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     print("Generator pre-training...")
@@ -84,6 +86,7 @@ def training_pre(model, dataloaders, dataset_sizes,
                 with torch.set_grad_enabled(phase == 'train'):
                     sr_patches = model(lr_patches)
                     loss = criterion(sr_patches, hr_patches)
+                    wandb.log({"PretrainGen Loss": loss})
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()

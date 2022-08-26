@@ -67,7 +67,7 @@ class QiDataset(Dataset):
         This function transforms the 3D image of np.ndarray (z,x,y) to a torch.ShortTensor (B,z,x,y).
 
         '''
-        image_torch = torch.ShortTensor(image)
+        image_torch = torch.Tensor(image)
         return image_torch
 
     def __getitem__(self, idx):
