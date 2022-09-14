@@ -77,8 +77,7 @@ lr = 5e-6
 ngpu = 2
 
 # set GPU device
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
-device = torch.device("cuda:0" if (
+device = torch.device("cuda" if (
     torch.cuda.is_available() and ngpu > 0) else "cpu")
 
 
