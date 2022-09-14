@@ -1,0 +1,35 @@
+Traceback (most recent call last):
+  File "main.py", line 203, in <module>
+    lr=lr_pre, patch_size=patch_size)
+  File "/raven/u/lumah/code/E6040-super-resolution-project/training_pre.py", line 66, in training_pre
+    for lr_data, hr_data in dataloaders[phase]:
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 517, in __next__
+    data = self._next_data()
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1199, in _next_data
+    return self._process_data(data)
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1225, in _process_data
+    data.reraise()
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/_utils.py", line 429, in reraise
+    raise self.exc_type(msg)
+AttributeError: Caught AttributeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/utils/data/_utils/worker.py", line 202, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/utils/data/_utils/fetch.py", line 44, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/utils/data/_utils/fetch.py", line 44, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/raven/u/lumah/code/E6040-super-resolution-project/ecbm6040/dataloader/CustomDatasetFromCSV.py", line 74, in __getitem__
+    hr = nib.load(self.hr_files[idx])
+  File "/mpcdf/soft/SLE_15/packages/x86_64/nibabel/anaconda_3_2020.02-2020.02/2.5.0/lib/python3.7/site-packages/nibabel/loadsave.py", line 47, in load
+    is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
+  File "/mpcdf/soft/SLE_15/packages/x86_64/nibabel/anaconda_3_2020.02-2020.02/2.5.0/lib/python3.7/site-packages/nibabel/filebasedimages.py", line 500, in path_maybe_image
+    klass._compressed_suffixes)
+  File "/mpcdf/soft/SLE_15/packages/x86_64/nibabel/anaconda_3_2020.02-2020.02/2.5.0/lib/python3.7/site-packages/nibabel/filename_parser.py", line 265, in splitext_addext
+    if endswith(filename, ext):
+  File "/mpcdf/soft/SLE_15/packages/x86_64/nibabel/anaconda_3_2020.02-2020.02/2.5.0/lib/python3.7/site-packages/nibabel/filename_parser.py", line 223, in _iendswith
+    return whole.lower().endswith(end.lower())
+AttributeError: 'PosixPath' object has no attribute 'lower'
+
+srun: error: ravg1166: task 0: Exited with exit code 1
+srun: launch/slurm: _step_signal: Terminating StepId=2754618.0

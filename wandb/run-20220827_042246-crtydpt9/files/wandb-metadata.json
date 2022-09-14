@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.3.18-150300.59.68-default-x86_64-with-glibc2.10",
+    "python": "3.7.6",
+    "heartbeatAt": "2022-08-27T02:22:47.372071",
+    "startedAt": "2022-08-27T02:22:46.595428",
+    "docker": null,
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "gpu_count": 2,
+    "cpu_count": 144,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "https://github.com/Lugges991/E6040-super-resolution-project",
+        "commit": "3dd37874460d8da343dfc8a54b3c6039a01eb4aa"
+    },
+    "email": null,
+    "root": "/raven/u/lumah/code/E6040-super-resolution-project",
+    "host": "ravg1178",
+    "username": "lumah",
+    "executable": "/mpcdf/soft/SLE_15/packages/x86_64/anaconda/3/2020.02/bin/python"
+}

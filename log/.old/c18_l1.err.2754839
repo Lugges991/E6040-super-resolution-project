@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "main.py", line 203, in <module>
+    lr=lr_pre, patch_size=patch_size)
+  File "/raven/u/lumah/code/E6040-super-resolution-project/training_pre.py", line 85, in training_pre
+    sr_patches = model(lr_patches)
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/raven/u/lumah/code/E6040-super-resolution-project/ecbm6040/model/mDCSRN_WGAN.py", line 93, in forward
+    x = self.conv0(x)
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/nn/modules/module.py", line 889, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/mpcdf/soft/SLE_15/packages/skylake/pytorch/gpu-cuda-11.2/anaconda_3_2020.02-2020.02/1.8.1/lib/python3.7/site-packages/torch/nn/modules/conv.py", line 521, in forward
+    self.padding, self.dilation, self.groups)
+RuntimeError: Expected 5-dimensional input for 5-dimensional weight [32, 1, 3, 3, 3], but got 4-dimensional input of size [16, 64, 64, 64] instead
+srun: error: ravg1054: task 0: Exited with exit code 1
+srun: launch/slurm: _step_signal: Terminating StepId=2754839.0

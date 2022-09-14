@@ -1,0 +1,29 @@
+Jobs finished
+                                  
+================================= 
+Global information about the job: 
+================================= 
+  
+Job owner: lumah(56064)
+Job name:  GAN-GPU
+Node list: ravg1124
+Job start: Thu Aug 25 15:28:43 CEST 2022
+Job end:   Thu Aug 25 15:29:27 CEST 2022
+Work dir:  /u/lumah/code/E6040-super-resolution-project/./
+Command:   /raven/u/lumah/code/E6040-super-resolution-project/train.sh
+  
+  
+  
+==========================================================================================
+Information on jobsteps (Note: MaxRSS/AveRSS is the maximum/average over all 
+tasks of the per-task memory high-water marks; cf. "man sacct"): 
+==========================================================================================
+  
+JobID           JobName NNodes NTasks  NCPUS       MaxRSS       AveRSS    Elapsed ExitCode 
+------------ ---------- ------ ------ ------ ------------ ------------ ---------- -------- 
+2754396         GAN-GPU      1            72                             00:00:44      0:0 
+2754396.0        python      1      1     72      972.97M      972.97M   00:00:42      1:0 
+  
+Maximum memory per node: 0.996318 GB (defined as MaxRSS*Ntasks/NNodes)
+CPU utilization: 2.3 %
+     

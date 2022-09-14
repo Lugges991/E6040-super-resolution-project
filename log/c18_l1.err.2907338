@@ -1,0 +1,12 @@
+wandb: Currently logged in as: lugges991 (kyb). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.13.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.13.2
+wandb: Run data is saved locally in /raven/u/lumah/code/E6040-super-resolution-project/wandb/run-20220913_142948-16ne31hq
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run fallen-forest-2
+wandb: ⭐️ View project at https://wandb.ai/kyb/super-res
+wandb: 🚀 View run at https://wandb.ai/kyb/super-res/runs/16ne31hq
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 2907338 ON ravg1070 CANCELLED AT 2022-09-14T14:28:35 DUE TO TIME LIMIT ***
+slurmstepd: error: *** STEP 2907338.0 ON ravg1070 CANCELLED AT 2022-09-14T14:28:35 DUE TO TIME LIMIT ***

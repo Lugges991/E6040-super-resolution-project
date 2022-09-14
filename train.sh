@@ -9,14 +9,14 @@
 # Node feature
 #SBATCH --ntasks=1
 #SBATCH --constraint="gpu"
-#SBATCH --gres=gpu:a100:2
+#SBATCH --gres=gpu:a100:1
 # Number of nodes and MPI tasks per node:
 # #SBATCH --cpus-per-task=16
 # #SBATCH --ntasks-per-node=1
 # wall clock limit(Max. is 24hrs)
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=qi.wang@tuebingen.mpg.de
+#SBATCH --mail-user=lucas.mahler@tuebingen.mpg.de
 
 module purge 
 module load anaconda/3/2020.02
