@@ -200,7 +200,7 @@ D_criterion = nn.BCELoss()
 model = training_pre(netG, dataloaders,
                      dataset_sizes, supervised_criterion,
                      device, ngpu, max_step=num_steps_pre,
-                     lr=lr_pre, patch_size=patch_size)
+                     lr=lr_pre, patch_size=patch_size, pretrained="models/pretrained_G_step250000")
 
 
 wgan_gp = WGAN_GP(netG, netD, supervised_criterion,
