@@ -9,7 +9,7 @@
 # Node feature
 #SBATCH --ntasks=1
 #SBATCH --constraint="gpu"
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gres=gpu:a100:2
 # Number of nodes and MPI tasks per node:
 # #SBATCH --cpus-per-task=16
 # #SBATCH --ntasks-per-node=1

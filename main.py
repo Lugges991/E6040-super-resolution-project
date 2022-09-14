@@ -47,7 +47,7 @@ torch.manual_seed(manualSeed)
 workers = 1
 
 # Batch size. It controls the number of samples once download
-batch_size = 8
+batch_size = 18
 
 # Patch size, it controls the number of patches once send into the model
 patch_size = 2
