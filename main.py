@@ -95,6 +95,7 @@ random_seed = 999
 # dataset = CustomDatasetFromCSV(id_csv, vm_PATH)
 # dataset_size = len(dataset)
 
+
 train_hr_path = "/ptmp/lumah/data/HR/all_subj_train_crops"
 train_lr_path = "/ptmp/lumah/data/LR/crops"
 
@@ -199,7 +200,7 @@ D_criterion = nn.BCELoss()
 model = training_pre(netG, dataloaders,
                      dataset_sizes, supervised_criterion,
                      device, ngpu, max_step=num_steps_pre,
-                     lr=lr_pre, patch_size=patch_size, pretrained="models/pretrained_G_step250000")
+                     lr=lr_pre, patch_size=patch_size)
 
 
 wgan_gp = WGAN_GP(netG, netD, supervised_criterion,

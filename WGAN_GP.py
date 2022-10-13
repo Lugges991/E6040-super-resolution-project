@@ -272,246 +272,245 @@ class WGAN_GP(object):
             mean_generator_content_loss = 0.0
             mean_discriminator_loss = 0.0
             # Each epoch has 10 training and validation phases
-            for fold in range(10):
-                for phase in ['train', 'val']:
+            for phase in ['train', 'val']:
+                if phase == 'train':
+                    self.netD.train()  # Set model to training mode
+                    self.netG.train()
+                else:
+                    self.netD.eval()   # Set model to training mode
+                    self.netG.eval()
+
+                batch_loss = []
+                batch_G_loss = []
+                batch_D_loss = []
+                val_ssim = []
+                val_psnr = []
+                val_nrmse = []
+
+                train_ssim = []
+                train_psnr = []
+                train_nrmse = []
+
+                for lr_data, hr_data in dataloaders[phase]:
+                    # #
+                    #############
+
+                    sr_data_cat = torch.Tensor([])  # for concatenation
+
+                    lr_patches = lr_data.cuda(self.device)
+                    hr_patches = hr_data.cuda(self.device)
+                    # zero the parameter gradients
+                    self.optimizerG.zero_grad()
+                    self.optimizerD.zero_grad()
+
+                ##################################################################################################
+                # Training                                                                                       #
+                ##################################################################################################
+
                     if phase == 'train':
-                        self.netD.train()  # Set model to training mode
-                        self.netG.train()
-                    else:
-                        self.netD.eval()   # Set model to training mode
-                        self.netG.eval()
-
-                    batch_loss = []
-                    batch_G_loss = []
-                    batch_D_loss = []
-                    val_ssim = []
-                    val_psnr = []
-                    val_nrmse = []
-
-                    train_ssim = []
-                    train_psnr = []
-                    train_nrmse = []
-
-                    for lr_data, hr_data in dataloaders[phase][fold]:
-                        # #
-                        #############
-
-                        sr_data_cat = torch.Tensor([])  # for concatenation
-
-                        lr_patches = lr_data.cuda(self.device)
-                        hr_patches = hr_data.cuda(self.device)
-                        # zero the parameter gradients
-                        self.optimizerG.zero_grad()
-                        self.optimizerD.zero_grad()
-
-                    ##################################################################################################
-                    # Training                                                                                       #
-                    ##################################################################################################
-
-                        if phase == 'train':
-                            # Training phase
-                            with torch.set_grad_enabled(True):
-                                ##########################################################
-                                # (1) Update D network in following conditions:
-                                # 1.in first steps;
-                                # 2.every 500 steps for extra 200 steps;
-                                # 3.consecutive 7 steps.
-                                # (2) Update G network in following conditions:
-                                # 1.after consecutive 7 steps Update D, update G for 1 step.
-                                ##########################################################
-                                # Update D Case 1: in first steps
-                                if (step < num_steps_pre + first_steps):
-                                    sr_patches, D_loss, G_loss, loss = self.pre_updateD(
-                                        lr_patches, hr_patches)
-                                    step += 1          # we count step here
-                                # Regular training
-                                else:
-                                    if ((imbl != 7) and (extra == 0)):
-                                        # Update D Case 3: consecutive 7 steps
-                                        sr_patches, D_loss, G_loss, loss = self.updateD(
-                                            lr_patches, hr_patches)
-                                        step += 1
-                                        imbl += 1
-                                    if ((imbl == 7) and (extra == 0)):
-                                        # Update G Case 1: update G for 1 step
-                                        sr_patches, G_loss, loss = self.updateG(
-                                            lr_patches, hr_patches)
-                                        step += 1
-                                        imbl = 1  # set to zero
-                                    # Update D Case 2: every 500 steps for extra 200 steps
-                                    if ((step % 500 == 0) or (extra != 0)):
-                                        sr_patches, D_loss, G_loss, loss = self.updateD(
-                                            lr_patches, hr_patches)
-                                        step += 1
-                                        extra += 1
-                                        if (extra == 200):
-                                            extra = 1
-
-                                _ssim = ssim(hr_patches, sr_patches)
-                                train_ssim.append(_ssim)
-
-                                _psnr = psnr(hr_patches, sr_patches)
-                                train_psnr.append(_psnr)
-
-                                _nrmse = nrmse(hr_patches, sr_patches)
-                                train_nrmse.append(_nrmse)
-
-                                wandb.log({"train ssim": _ssim, "train psnr": _psnr, "train nrmse": _nrmse})
-                            # This print out is only for early inspection
-                            if (step % 500) == 0:
-                                print('Step: {}, loss= {:.4f}, D_loss= {:.4f}, G_loss= {:.4f}'.format(
-                                    step, loss.item(), D_loss.item(), G_loss.item()))
-
-                            # statistics
-                            batch_loss = np.append(batch_loss, loss.item())
-                            batch_G_loss = np.append(
-                                batch_G_loss, G_loss.item())
-                            batch_D_loss = np.append(
-                                batch_D_loss, D_loss.item())
-
-                            if ((step - num_steps_pre) % int((max_step - num_steps_pre) // 10)) == 0:
-                                # save intermediate models for singal GPU and multi GPU
-                                if self.ngpu > 1:
-                                    torch.save(self.netG.module.state_dict(
-                                    ), 'models/WGAN_G_step{}'.format(step))
-                                    torch.save(self.netD.module.state_dict(
-                                    ), 'models/WGAN_D_step{}'.format(step))
-                                else:
-                                    torch.save(self.netG.state_dict(
-                                    ), 'models/WGAN_G_step{}'.format(step))
-                                    torch.save(self.netD.state_dict(
-                                    ), 'models/WGAN_D_step{}'.format(step))
-                                # record instant loss
-                                train_loss = np.append(
-                                    train_loss, batch_loss)
-                                train_D_loss = np.append(
-                                    train_D_loss, batch_D_loss)
-                                f = open(
-                                    'loss_history/train_loss_step{}.txt'.format(step), 'wb')
-                                pickle.dump(train_loss, f)
-                                f.close()
-                                f = open(
-                                    'loss_history/train_loss_D_step{}.txt'.format(step), 'wb')
-                                pickle.dump(train_D_loss, f)
-                                f.close()
-                                f = open(
-                                    'loss_history/val_loss_step{}.txt'.format(step), 'wb')
-                                pickle.dump(val_loss, f)
-                                f.close()
-                                f = open(
-                                    'loss_history/val_loss_D_step{}.txt'.format(step), 'wb')
-                                pickle.dump(val_D_loss, f)
-                                f.close()
-
-
-                            if (step == max_step):
-                                print("True")
-                                # record instant loss
-                                train_loss = np.append(
-                                    train_loss, batch_loss)
-                                train_D_loss = np.append(
-                                    train_D_loss, batch_D_loss)
-                                f = open(
-                                    'loss_history/train_loss_history.txt', 'wb')
-                                pickle.dump(train_loss, f)
-                                f.close()
-                                f = open(
-                                    'loss_history/train_loss_D_history.txt', 'wb')
-                                pickle.dump(train_D_loss, f)
-                                f.close()
-                                f = open(
-                                    'loss_history/val_loss_history.txt', 'wb')
-                                pickle.dump(val_loss, f)
-                                f.close()
-                                f = open(
-                                    'loss_history/val_loss_D_history.txt', 'wb')
-                                pickle.dump(val_D_loss, f)
-                                f.close()
-                                print('Complete {} steps'.format(step))
-
-                                # save for single GPU and multi GPU
-                                if self.ngpu > 1:
-                                    torch.save(
-                                        self.netG.module.state_dict(), 'models/final_model_G')
-                                    torch.save(
-                                        self.netD.module.state_dict(), 'models/final_model_D')
-                                else:
-                                    torch.save(
-                                        self.netG.state_dict(), 'models/final_model_G')
-                                    torch.save(
-                                        self.netD.state_dict(), 'models/final_model_D')
-
-                                np.save("loss_history/train_ssim.npy", np.array(train_ssim))
-                                np.save("loss_history/train_psnr.npy", np.array(train_psnr))
-                                np.save("loss_history/train_nrmse.npy", np.array(train_nrmse))
-                                return self.netG, self.netD
-
-                    ##################################################################################################
-                    # Validation                                                                                     #
-                    ##################################################################################################
-                        else:
-                            # Validation phase
-                            with torch.set_grad_enabled(False):
-                                sr_patches, D_loss, G_loss, loss = self.forwardDG(
+                        # Training phase
+                        with torch.set_grad_enabled(True):
+                            ##########################################################
+                            # (1) Update D network in following conditions:
+                            # 1.in first steps;
+                            # 2.every 500 steps for extra 200 steps;
+                            # 3.consecutive 7 steps.
+                            # (2) Update G network in following conditions:
+                            # 1.after consecutive 7 steps Update D, update G for 1 step.
+                            ##########################################################
+                            # Update D Case 1: in first steps
+                            if (step < num_steps_pre + first_steps):
+                                sr_patches, D_loss, G_loss, loss = self.pre_updateD(
                                     lr_patches, hr_patches)
-                            # statistics
-                            batch_loss = np.append(batch_loss, loss.item())
-                            batch_G_loss = np.append(
-                                batch_G_loss, G_loss.item())
-                            batch_D_loss = np.append(
-                                batch_D_loss, D_loss.item())
-                            # concatenate patches, send patches to cpu to save GPU memory
-                            sr_data_cat = torch.cat(
-                                [sr_data_cat, sr_patches.to("cpu")], 0)
+                                step += 1          # we count step here
+                            # Regular training
+                            else:
+                                if ((imbl != 7) and (extra == 0)):
+                                    # Update D Case 3: consecutive 7 steps
+                                    sr_patches, D_loss, G_loss, loss = self.updateD(
+                                        lr_patches, hr_patches)
+                                    step += 1
+                                    imbl += 1
+                                if ((imbl == 7) and (extra == 0)):
+                                    # Update G Case 1: update G for 1 step
+                                    sr_patches, G_loss, loss = self.updateG(
+                                        lr_patches, hr_patches)
+                                    step += 1
+                                    imbl = 1  # set to zero
+                                # Update D Case 2: every 500 steps for extra 200 steps
+                                if ((step % 500 == 0) or (extra != 0)):
+                                    sr_patches, D_loss, G_loss, loss = self.updateD(
+                                        lr_patches, hr_patches)
+                                    step += 1
+                                    extra += 1
+                                    if (extra == 200):
+                                        extra = 1
 
-                        if phase == 'val':
+                            _ssim = ssim(hr_patches, sr_patches)
+                            train_ssim.append(_ssim)
 
-                            batch_ssim = ssim(hr_patches, sr_patches)
-                            batch_psnr = psnr(hr_patches, sr_patches)
-                            batch_nrmse = nrmse(hr_patches, sr_patches)
-                            val_ssim = np.append(val_ssim, batch_ssim)
-                            val_psnr = np.append(val_psnr, batch_psnr)
-                            val_nrmse = np.append(val_nrmse, batch_nrmse)
-                            wandb.log({"val_ssim": val_ssim, "val_psnr": val_psnr, "val_nrmse": val_nrmse})
+                            _psnr = psnr(hr_patches, sr_patches)
+                            train_psnr.append(_psnr)
 
-                            ## do I need to save here?
+                            _nrmse = nrmse(hr_patches, sr_patches)
+                            train_nrmse.append(_nrmse)
 
-                    # epoch over
-                    ##################################################################################################
-                    ##################################################################################################
+                            wandb.log({"train ssim": _ssim, "train psnr": _psnr, "train nrmse": _nrmse})
+                        # This print out is only for early inspection
+                        if (step % 500) == 0:
+                            print('Step: {}, loss= {:.4f}, D_loss= {:.4f}, G_loss= {:.4f}'.format(
+                                step, loss.item(), D_loss.item(), G_loss.item()))
 
-                    mean_generator_content_loss = np.mean(batch_loss)
-                    mean_discriminator_loss = np.mean(batch_D_loss)
-                    if phase == 'val':
-                        mean_ssim = np.mean(val_ssim)
-                        std_ssim = np.std(val_ssim)
-                        mean_psnr = np.mean(val_psnr)
-                        std_psnr = np.std(val_psnr)
-                        mean_nrmse = np.mean(val_nrmse)
-                        std_nrmse = np.std(val_nrmse)
-                        val_loss = np.append(val_loss, batch_loss)
-                        val_D_loss = np.append(val_D_loss, batch_D_loss)
-                        f = open(
-                            'example_images/mean_ssim_step{}.txt'.format(step), 'wb')
-                        pickle.dump(mean_ssim, f)
-                        f.close()
-                        f = open(
-                            'example_images/mean_psnr_step{}.txt'.format(step), 'wb')
-                        pickle.dump(mean_psnr, f)
-                        f.close()
-                        f = open(
-                            'example_images/mean_nrmse_step{}.txt'.format(step), 'wb')
-                        pickle.dump(mean_nrmse, f)
-                        f.close()
-                        print('No. {} {} period. Mean main loss: {:.4f}. Mean discriminator loss: {:.4f}.'.format(
-                            fold+1, phase, mean_generator_content_loss, mean_discriminator_loss))
-                        print('Metrics: subject-wise mean SSIM = {:.4f}, std = {:.4f}; mean PSNR = {:.4f}, std = {:.4f}; mean NRMSE = {:.4f}, std = {:.4f}.'.format(
-                            mean_ssim, std_ssim, mean_psnr, std_psnr, mean_nrmse, std_nrmse))
+                        # statistics
+                        batch_loss = np.append(batch_loss, loss.item())
+                        batch_G_loss = np.append(
+                            batch_G_loss, G_loss.item())
+                        batch_D_loss = np.append(
+                            batch_D_loss, D_loss.item())
+
+                        if ((step - num_steps_pre) % int((max_step - num_steps_pre) // 10)) == 0:
+                            # save intermediate models for singal GPU and multi GPU
+                            if self.ngpu > 1:
+                                torch.save(self.netG.module.state_dict(
+                                ), 'models/WGAN_G_step{}'.format(step))
+                                torch.save(self.netD.module.state_dict(
+                                ), 'models/WGAN_D_step{}'.format(step))
+                            else:
+                                torch.save(self.netG.state_dict(
+                                ), 'models/WGAN_G_step{}'.format(step))
+                                torch.save(self.netD.state_dict(
+                                ), 'models/WGAN_D_step{}'.format(step))
+                            # record instant loss
+                            train_loss = np.append(
+                                train_loss, batch_loss)
+                            train_D_loss = np.append(
+                                train_D_loss, batch_D_loss)
+                            f = open(
+                                'loss_history/train_loss_step{}.txt'.format(step), 'wb')
+                            pickle.dump(train_loss, f)
+                            f.close()
+                            f = open(
+                                'loss_history/train_loss_D_step{}.txt'.format(step), 'wb')
+                            pickle.dump(train_D_loss, f)
+                            f.close()
+                            f = open(
+                                'loss_history/val_loss_step{}.txt'.format(step), 'wb')
+                            pickle.dump(val_loss, f)
+                            f.close()
+                            f = open(
+                                'loss_history/val_loss_D_step{}.txt'.format(step), 'wb')
+                            pickle.dump(val_D_loss, f)
+                            f.close()
+
+
+                        if (step == max_step):
+                            print("True")
+                            # record instant loss
+                            train_loss = np.append(
+                                train_loss, batch_loss)
+                            train_D_loss = np.append(
+                                train_D_loss, batch_D_loss)
+                            f = open(
+                                'loss_history/train_loss_history.txt', 'wb')
+                            pickle.dump(train_loss, f)
+                            f.close()
+                            f = open(
+                                'loss_history/train_loss_D_history.txt', 'wb')
+                            pickle.dump(train_D_loss, f)
+                            f.close()
+                            f = open(
+                                'loss_history/val_loss_history.txt', 'wb')
+                            pickle.dump(val_loss, f)
+                            f.close()
+                            f = open(
+                                'loss_history/val_loss_D_history.txt', 'wb')
+                            pickle.dump(val_D_loss, f)
+                            f.close()
+                            print('Complete {} steps'.format(step))
+
+                            # save for single GPU and multi GPU
+                            if self.ngpu > 1:
+                                torch.save(
+                                    self.netG.module.state_dict(), 'models/final_model_G')
+                                torch.save(
+                                    self.netD.module.state_dict(), 'models/final_model_D')
+                            else:
+                                torch.save(
+                                    self.netG.state_dict(), 'models/final_model_G')
+                                torch.save(
+                                    self.netD.state_dict(), 'models/final_model_D')
+
+                            np.save("loss_history/train_ssim.npy", np.array(train_ssim))
+                            np.save("loss_history/train_psnr.npy", np.array(train_psnr))
+                            np.save("loss_history/train_nrmse.npy", np.array(train_nrmse))
+                            return self.netG, self.netD
+
+                ##################################################################################################
+                # Validation                                                                                     #
+                ##################################################################################################
                     else:
-                        train_loss = np.append(train_loss, batch_loss)
-                        train_D_loss = np.append(train_D_loss, batch_D_loss)
-                        print('No.{} {} period. Mean main loss: {:.4f}. Mean discriminator loss: {:.4f}'.format(
-                            fold+1, phase, mean_generator_content_loss, mean_discriminator_loss))
+                        # Validation phase
+                        with torch.set_grad_enabled(False):
+                            sr_patches, D_loss, G_loss, loss = self.forwardDG(
+                                lr_patches, hr_patches)
+                        # statistics
+                        batch_loss = np.append(batch_loss, loss.item())
+                        batch_G_loss = np.append(
+                            batch_G_loss, G_loss.item())
+                        batch_D_loss = np.append(
+                            batch_D_loss, D_loss.item())
+                        # concatenate patches, send patches to cpu to save GPU memory
+                        sr_data_cat = torch.cat(
+                            [sr_data_cat, sr_patches.to("cpu")], 0)
+
+                    if phase == 'val':
+
+                        batch_ssim = ssim(hr_patches, sr_patches)
+                        batch_psnr = psnr(hr_patches, sr_patches)
+                        batch_nrmse = nrmse(hr_patches, sr_patches)
+                        val_ssim = np.append(val_ssim, batch_ssim)
+                        val_psnr = np.append(val_psnr, batch_psnr)
+                        val_nrmse = np.append(val_nrmse, batch_nrmse)
+                        wandb.log({"val_ssim": val_ssim, "val_psnr": val_psnr, "val_nrmse": val_nrmse})
+
+                        ## do I need to save here?
+
+                # epoch over
+                ##################################################################################################
+                ##################################################################################################
+
+                mean_generator_content_loss = np.mean(batch_loss)
+                mean_discriminator_loss = np.mean(batch_D_loss)
+                if phase == 'val':
+                    mean_ssim = np.mean(val_ssim)
+                    std_ssim = np.std(val_ssim)
+                    mean_psnr = np.mean(val_psnr)
+                    std_psnr = np.std(val_psnr)
+                    mean_nrmse = np.mean(val_nrmse)
+                    std_nrmse = np.std(val_nrmse)
+                    val_loss = np.append(val_loss, batch_loss)
+                    val_D_loss = np.append(val_D_loss, batch_D_loss)
+                    f = open(
+                        'example_images/mean_ssim_step{}.txt'.format(step), 'wb')
+                    pickle.dump(mean_ssim, f)
+                    f.close()
+                    f = open(
+                        'example_images/mean_psnr_step{}.txt'.format(step), 'wb')
+                    pickle.dump(mean_psnr, f)
+                    f.close()
+                    f = open(
+                        'example_images/mean_nrmse_step{}.txt'.format(step), 'wb')
+                    pickle.dump(mean_nrmse, f)
+                    f.close()
+                    print('No. {} {} period. Mean main loss: {:.4f}. Mean discriminator loss: {:.4f}.'.format(
+                        1, phase, mean_generator_content_loss, mean_discriminator_loss))
+                    print('Metrics: subject-wise mean SSIM = {:.4f}, std = {:.4f}; mean PSNR = {:.4f}, std = {:.4f}; mean NRMSE = {:.4f}, std = {:.4f}.'.format(
+                        mean_ssim, std_ssim, mean_psnr, std_psnr, mean_nrmse, std_nrmse))
+                else:
+                    train_loss = np.append(train_loss, batch_loss)
+                    train_D_loss = np.append(train_D_loss, batch_D_loss)
+                    print('No.{} {} period. Mean main loss: {:.4f}. Mean discriminator loss: {:.4f}'.format(
+                        +1, phase, mean_generator_content_loss, mean_discriminator_loss))
 
                 time_elapsed = time.time() - since
                 print('Now the training uses {:.0f}m {:.0f}s'.format(
